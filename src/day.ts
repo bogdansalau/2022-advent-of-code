@@ -7,7 +7,6 @@ export abstract class BaseDay<Input, Return1, Return2> {
   }
 
   abstract parse(input: string): Input;
-
   abstract partOne(): Promise<Return1>;
   abstract partTwo(partOneOutput?: Return1): Promise<Return2>;
 
