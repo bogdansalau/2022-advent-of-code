@@ -3,3 +3,5 @@
 /.eslintcache
 /coverage
 .DS_Store
+
+.idea
