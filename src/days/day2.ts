@@ -11,7 +11,7 @@ const bonus: any = {
   Z: 3,
 };
 
-const rules: any = {
+const rules: Record<string, Record<string, number>> = {
   A: {
     //rock
     X: 3, //rock
