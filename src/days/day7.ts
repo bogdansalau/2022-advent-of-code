@@ -1,5 +1,8 @@
 import { BaseDay } from '../day';
 
+const DISK_SPACE = 70000000;
+const REQUIRED_SPACE = 30000000;
+
 class Node {
   name: string;
   files: Node[];
@@ -7,23 +10,24 @@ class Node {
   size: number;
 
   parent: Node | null;
-  private constructor(name: string, size: number) {
+  private constructor(name: string, size: number, parent: Node | null) {
     this.name = name;
     this.files = [];
     this.directories = [];
     this.size = size;
+    this.parent = parent;
   }
 
   addFile(fileName: string, size: number) {
-    this.files = this.files.concat(Node.newFile(fileName, size));
+    this.files.push(Node.newFile(fileName, size, this));
   }
 
   addDir(fileName: string): Node {
     const node = this.directories.find((it) => it.name === fileName);
     if (node) return node;
 
-    const newDir = Node.newDir(fileName);
-    this.directories = this.directories.concat(newDir);
+    const newDir = Node.newDir(fileName, this);
+    this.directories.push(newDir);
     return newDir;
   }
 
@@ -40,12 +44,12 @@ class Node {
     return dirSizes + fileSizes;
   }
 
-  static newFile(fileName: string, size: number): Node {
-    return new this(fileName, size);
+  static newFile(fileName: string, size: number, parent: Node): Node {
+    return new this(fileName, size, parent);
   }
 
-  static newDir(fileName: string): Node {
-    return new this(fileName, 0);
+  static newDir(fileName: string, parent: Node | null): Node {
+    return new this(fileName, 0, parent);
   }
 }
 
@@ -55,7 +59,24 @@ export class Day extends BaseDay<string[], number, number> {
   }
 
   async partOne(): Promise<number> {
-    const root = Node.newDir('/');
+    const { nodes } = this.getNodes();
+
+    return nodes
+      .map((it) => it.getSize())
+      .filter((it) => it <= 100000)
+      .reduce((a, b) => a + b, 0);
+  }
+
+  getNodes(): { nodes: Node[]; root: Node } {
+    const root = this.buildTree();
+    return {
+      nodes: this.exploreTree(root, [root]),
+      root,
+    };
+  }
+
+  buildTree(): Node {
+    const root = Node.newDir('/', null);
     let currDir: Node = root;
     for (let i = 1; i < this.input.length; i++) {
       const cmd = this.input[i];
@@ -63,7 +84,7 @@ export class Day extends BaseDay<string[], number, number> {
         const dirName = cmd.split(' ')[2];
 
         if (dirName === '..') {
-          currDir = this.findParent(root, currDir.name) || root;
+          currDir = currDir.parent!;
           continue;
         }
 
@@ -71,7 +92,6 @@ export class Day extends BaseDay<string[], number, number> {
           currDir = root;
           continue;
         }
-
         currDir = currDir.addDir(dirName);
         continue;
       }
@@ -95,35 +115,26 @@ export class Day extends BaseDay<string[], number, number> {
         i--;
       }
     }
-
-    const list: Node[] = [root];
-    this.exploreDir(root, list);
-
-    return list
-      .map((it) => it.getSize())
-      .filter((it) => it <= 100000)
-      .reduce((a, b) => a + b, 0);
+    return root;
   }
 
-  findParent(root: Node, name: string): Node | null {
-    let node: Node | null = null;
-    root.directories.forEach((it) => {
-      if (it.name === name) {
-        node = root;
-      }
-    });
-    return node;
-  }
-
-  exploreDir(root: Node, dirs: Node[]) {
+  exploreTree(root: Node, dirs: Node[]): Node[] {
     root.directories.forEach((it) => {
       dirs.push(it);
-      this.exploreDir(it, dirs);
+      this.exploreTree(it, dirs);
     });
+    return dirs;
   }
 
   async partTwo(): Promise<number> {
-    return 42;
+    const { nodes, root } = this.getNodes();
+    const freeSpace = DISK_SPACE - root.getSize();
+    const toFree = REQUIRED_SPACE - freeSpace;
+
+    return nodes
+      .map((it) => it.getSize())
+      .filter((it) => it > toFree)
+      .sort((a, b) => a - b)[0];
   }
 }
 

@@ -25,4 +25,4 @@ $ ls
 5626152 d.ext
 7214296 k`;
 
-dayRunner(Day, example, 95437, 42);
+dayRunner(Day, example, 95437, 24933642);
