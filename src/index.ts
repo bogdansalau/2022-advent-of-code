@@ -9,10 +9,12 @@ async function main(): Promise<void> {
   const inputs = await fs.readdir('./inputs/');
 
   const last = inputs.reverse()[0];
-  const dayNumber = parseInt(last.substring('day'.length));
+  const dayNumber = process.argv[2] || parseInt(last.substring('day'.length));
   console.log(`running: day ${dayNumber}`);
 
-  const input = await fs.readFile('./inputs/' + last, { encoding: 'utf-8' });
+  const input = await fs.readFile('./inputs/' + `day${dayNumber}`, {
+    encoding: 'utf-8',
+  });
   const DayType = (await import(`./days/day${dayNumber}`)).default;
   const day = new DayType(input);
   assert(day);
