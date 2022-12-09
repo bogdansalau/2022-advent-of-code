@@ -18,7 +18,6 @@ export class Day extends BaseDay<number[][], number, number> {
           this.visibleRight(i, j, this.input);
         if (isVisible) {
           visibles++;
-          console.log(i, j);
         }
       }
     }
